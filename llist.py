@@ -1,3 +1,4 @@
+# LinkedList data structure
 # Node class because we don't want to create a new node everytime
 class Node:
     def __init__(self, value):
