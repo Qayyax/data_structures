@@ -10,6 +10,7 @@ class BinarySearchTree:
     def __init__(self):
         self.root = None
 
+    # Loop approach
     def insert(self, value):
         new_node = Node(value)
         if self.root is None:
@@ -31,9 +32,49 @@ class BinarySearchTree:
                     return True
                 temp = temp.left
 
+    # Recurssive approach
+    def __r_insert(self, current_node, value):
+        if current_node is None:
+            # current_node = Node(value)
+            return Node(value)
+        if value > current_node.value:
+            # setting current_node.right = Node(value)
+            # but it recursivesly callsback, so new_node if None
+            # else, the checks again if value > or < than
+            current_node.right = self.__r_insert(current_node.right, value)
+        if value < current_node.value:
+            current_node.left = self.__r_insert(current_node.left, value)
+        return current_node  # Return current_node to maintain tree structure
+
+    def r_insert(self, value):
+        if self.root is None:
+            # need to set self.root to Node, so that,
+            # self.__r_insert() would point to the other node or self.root
+            # when it returns current_node
+            self.root = Node(value)
+        self.__r_insert(self.root, value)
+
+    # Recussive approach as opposed to loop approach
+    def __r_contains(self, current_node, value):
+        if current_node is None:
+            # Check if current_node is None meaning at the end of tree
+            return False
+        if current_node.value == value:
+            return True
+
+        if current_node.value < value:  # value > current_node.value
+            return self.__r_contains(current_node.right, value)
+        if current_node.value > value:  # value > current_node.value
+            return self.__r_contains(current_node.left, value)
+
+    # calling the recursion helper method
+    def r_contains(self, value):
+        return self.__r_contains(self.root, value)
+
+    # Loop approach
     def contains(self, value):
         temp = self.root
-        # if self.root is None -> False would not trigger loop
+        # if self.root is None (temp is None) -> False would not trigger loop
         # so it would return False
         while temp:
             if value > temp.value:
@@ -44,12 +85,43 @@ class BinarySearchTree:
                 return True
         return False
 
+    def min_value(self, current_node):
+        '''Helper function to find min value on the right
+        for self.__delete()
+        '''
+        while current_node.left is not None:
+            current_node = current_node.left
+        return current_node
 
-my_tree = BinarySearchTree()
-my_tree.insert(2)
-print(my_tree.root.value)
-my_tree.insert(1)
-print(my_tree.root.left.value)
-my_tree.insert(3)
-print(my_tree.root.right.value)
-print(my_tree.contains(8))
+    def __delete(self, current_node, value):
+        if current_node is None:
+            return None
+
+        if value > current_node.value:
+            current_node.right = self.__delete(current_node.right, value)
+        elif value < current_node.value:
+            current_node.left = self.__delete(current_node.left, value)
+        else:  # if value == current_node.value
+            # if current_node doesn't have child nodes at all
+            if current_node.right is None and current_node.left is None:
+                return None
+            # if current_node has only one child node on the right not left
+            if current_node.right is not None and current_node.left is None:
+                return current_node.right
+            # if current_node has only one child node on the left not right
+            if current_node.left is not None and current_node.right is None:
+                return current_node.right
+            # if current_node has child nodes on both right and left
+            if (current_node.right is not None
+                    and current_node.left is not None):
+                # find the min_value on the right of the current_node
+                min_value = self.min_value(current_node.right)
+                # change current_node value to min_value
+                current_node.value = min_value
+                # Delete the node that was swapped
+                current_node.right = self.__delete(current_node.right,
+                                                   min_value)
+        return current_node
+
+    def delete(self, value):
+        self.__delete(self.root, value)
